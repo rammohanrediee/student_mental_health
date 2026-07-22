@@ -3,4 +3,7 @@ __pycache__/
 .ipynb_checkpoints/
 *.zip
 *.csv
+*.joblib
+.coverage
+.pytest_cache/
 .DS_Store

@@ -1,0 +1,102 @@
+{
+  "dataset": {
+    "rows": 1000,
+    "features": 8,
+    "target_classes": [
+      "Declined",
+      "Improved",
+      "Same"
+    ],
+    "class_distribution": {
+      "Declined": 298,
+      "Improved": 303,
+      "Same": 399
+    }
+  },
+  "split": {
+    "train_rows": 800,
+    "test_rows": 200,
+    "stratified": true,
+    "random_state": 42
+  },
+  "test_metrics": {
+    "accuracy": 0.28,
+    "balanced_accuracy": 0.2972,
+    "macro_f1": 0.2731,
+    "weighted_precision": 0.2843,
+    "weighted_recall": 0.28
+  },
+  "baseline": {
+    "accuracy": 0.4,
+    "balanced_accuracy": 0.3333,
+    "macro_f1": 0.1905,
+    "weighted_precision": 0.16,
+    "weighted_recall": 0.4
+  },
+  "cross_validation": {
+    "metric": "macro_f1",
+    "folds": 5,
+    "macro_f1_scores": [
+      0.3436,
+      0.2999,
+      0.3112,
+      0.2749,
+      0.3094
+    ],
+    "macro_f1_mean": 0.3078,
+    "macro_f1_std": 0.0221
+  },
+  "feature_importance": [
+    {
+      "feature": "age",
+      "importance_mean": 0.017,
+      "importance_std": 0.0121
+    },
+    {
+      "feature": "screen_time_hrs_day",
+      "importance_mean": 0.0057,
+      "importance_std": 0.0067
+    },
+    {
+      "feature": "stress_level",
+      "importance_mean": 0.0036,
+      "importance_std": 0.0114
+    },
+    {
+      "feature": "sleep_duration_hrs",
+      "importance_mean": -0.0024,
+      "importance_std": 0.0149
+    },
+    {
+      "feature": "physical_activity_hrs_week",
+      "importance_mean": -0.0055,
+      "importance_std": 0.0129
+    },
+    {
+      "feature": "anxious_before_exams",
+      "importance_mean": -0.0127,
+      "importance_std": 0.0135
+    },
+    {
+      "feature": "gender",
+      "importance_mean": -0.0142,
+      "importance_std": 0.0147
+    },
+    {
+      "feature": "education_level",
+      "importance_mean": -0.0422,
+      "importance_std": 0.0219
+    }
+  ],
+  "data_leakage_controls": {
+    "split_before_fit": true,
+    "preprocessing_fit_on_training_only": true,
+    "stratified_split": true,
+    "cross_validation_refits_full_pipeline": true
+  },
+  "limitations": [
+    "Observational data cannot establish causal effects.",
+    "Self-reported measures may contain response and recall bias.",
+    "Performance should be validated on data from a different institution or time period."
+  ]
+}
