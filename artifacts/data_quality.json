@@ -1,0 +1,64 @@
+{
+  "rows": 1000,
+  "columns": 10,
+  "missing_values_total": 0,
+  "missing_values_by_column": {
+    "name": 0,
+    "gender": 0,
+    "age": 0,
+    "education_level": 0,
+    "screen_time_hrs_day": 0,
+    "sleep_duration_hrs": 0,
+    "physical_activity_hrs_week": 0,
+    "stress_level": 0,
+    "anxious_before_exams": 0,
+    "academic_performance_change": 0
+  },
+  "duplicate_rows": 0,
+  "dtypes": {
+    "name": "str",
+    "gender": "str",
+    "age": "int64",
+    "education_level": "str",
+    "screen_time_hrs_day": "float64",
+    "sleep_duration_hrs": "float64",
+    "physical_activity_hrs_week": "float64",
+    "stress_level": "str",
+    "anxious_before_exams": "str",
+    "academic_performance_change": "str"
+  },
+  "numeric_summary": {
+    "age": {
+      "min": 15.0,
+      "max": 26.0,
+      "mean": 20.342,
+      "std": 3.4599
+    },
+    "screen_time_hrs_day": {
+      "min": 2.0,
+      "max": 12.0,
+      "mean": 6.9092,
+      "std": 2.9071
+    },
+    "sleep_duration_hrs": {
+      "min": 4.0,
+      "max": 9.0,
+      "mean": 6.4508,
+      "std": 1.4664
+    },
+    "physical_activity_hrs_week": {
+      "min": 0.0,
+      "max": 10.0,
+      "mean": 5.0176,
+      "std": 2.9303
+    }
+  },
+  "categorical_cardinality": {
+    "name": 30,
+    "gender": 3,
+    "education_level": 11,
+    "stress_level": 3,
+    "anxious_before_exams": 2,
+    "academic_performance_change": 3
+  }
+}
