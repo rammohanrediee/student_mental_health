@@ -23,10 +23,24 @@ st.markdown(
     """
     <style>
     .block-container {max-width: 1180px; padding-top: 2rem;}
-    [data-testid="stMetric"] {background: #f5f8fa; border: 1px solid #e2e8f0;
-        border-radius: 0.75rem; padding: 1rem;}
-    .insight {background: #eef7f8; border-left: 4px solid #16879b;
-        border-radius: 0.35rem; padding: 0.9rem 1rem;}
+    [data-testid="stMetric"] {
+        background: var(--secondary-background-color);
+        border: 1px solid color-mix(in srgb, var(--text-color) 18%, transparent);
+        border-radius: 0.75rem;
+        color: var(--text-color);
+        padding: 1rem;
+    }
+    .insight {
+        background: color-mix(
+            in srgb,
+            var(--secondary-background-color) 88%,
+            var(--primary-color) 12%
+        );
+        border-left: 4px solid var(--primary-color);
+        border-radius: 0.35rem;
+        color: var(--text-color);
+        padding: 0.9rem 1rem;
+    }
     </style>
     """,
     unsafe_allow_html=True,
