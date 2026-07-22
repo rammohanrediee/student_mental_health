@@ -2,6 +2,8 @@
 
 A reproducible multiclass machine-learning project that examines how student demographics, screen time, sleep, physical activity, stress, and exam anxiety relate to reported academic-performance changes during online learning.
 
+![Dashboard overview](docs/images/dashboard-overview.png)
+
 The model predicts three outcomes without collapsing their meaning:
 
 - `Improved`
@@ -102,6 +104,8 @@ Using a fixed, stratified 80/20 split (`random_state=42`):
 | Weighted recall | 0.2800 | 0.4000 |
 
 Five-fold training-set cross-validation produced a mean macro F1 of **0.3078 ± 0.0221**.
+
+![Model results showing the confusion matrix and permutation importance](docs/images/dashboard-model-results.png)
 
 The model predicts minority classes more evenly than the majority baseline, which raises macro F1, but its accuracy and balanced accuracy remain low. Permutation importance is also close to zero for every feature. The responsible conclusion is that this dataset does **not** provide strong out-of-sample predictive signal for academic-performance change. That negative result is more useful than presenting the earlier binary 60.5% accuracy without a baseline or leakage controls.
 
