@@ -63,6 +63,68 @@
       "academic_performance_change": 3
     }
   },
+  "eda": {
+    "target_distribution": {
+      "Declined": {
+        "count": 298,
+        "proportion": 0.298
+      },
+      "Improved": {
+        "count": 303,
+        "proportion": 0.303
+      },
+      "Same": {
+        "count": 399,
+        "proportion": 0.399
+      }
+    },
+    "numeric_means_by_target": {
+      "Declined": {
+        "age": 20.1812,
+        "screen_time_hrs_day": 6.7097,
+        "sleep_duration_hrs": 6.405,
+        "physical_activity_hrs_week": 5.1681
+      },
+      "Improved": {
+        "age": 20.5875,
+        "screen_time_hrs_day": 7.0116,
+        "sleep_duration_hrs": 6.4465,
+        "physical_activity_hrs_week": 4.7888
+      },
+      "Same": {
+        "age": 20.2757,
+        "screen_time_hrs_day": 6.9805,
+        "sleep_duration_hrs": 6.4882,
+        "physical_activity_hrs_week": 5.0789
+      }
+    },
+    "numeric_correlations": {
+      "age": {
+        "age": 1.0,
+        "screen_time_hrs_day": 0.009,
+        "sleep_duration_hrs": -0.0106,
+        "physical_activity_hrs_week": -0.0336
+      },
+      "screen_time_hrs_day": {
+        "age": 0.009,
+        "screen_time_hrs_day": 1.0,
+        "sleep_duration_hrs": 0.0113,
+        "physical_activity_hrs_week": 0.0285
+      },
+      "sleep_duration_hrs": {
+        "age": -0.0106,
+        "screen_time_hrs_day": 0.0113,
+        "sleep_duration_hrs": 1.0,
+        "physical_activity_hrs_week": -0.0134
+      },
+      "physical_activity_hrs_week": {
+        "age": -0.0336,
+        "screen_time_hrs_day": 0.0285,
+        "sleep_duration_hrs": -0.0134,
+        "physical_activity_hrs_week": 1.0
+      }
+    }
+  },
   "dataset": {
     "rows": 1000,
     "features": 8,

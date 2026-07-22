@@ -112,6 +112,79 @@ def build_data_quality_report(frame: pd.DataFrame) -> dict:
     }
 
 
+def build_eda_summary(frame: pd.DataFrame) -> dict:
+    """Summarize target balance and feature patterns for reproducible EDA."""
+    target_counts = frame[TARGET].value_counts().sort_index()
+    numeric_columns = [
+        column
+        for column in frame.select_dtypes(include="number").columns
+        if column not in IDENTIFIER_COLUMNS
+    ]
+    numeric_by_target = frame.groupby(TARGET, observed=True)[numeric_columns].mean()
+
+    return {
+        "target_distribution": {
+            str(label): {
+                "count": int(count),
+                "proportion": _rounded(count / len(frame)),
+            }
+            for label, count in target_counts.items()
+        },
+        "numeric_means_by_target": {
+            str(label): {
+                str(column): _rounded(value)
+                for column, value in values.items()
+            }
+            for label, values in numeric_by_target.iterrows()
+        },
+        "numeric_correlations": {
+            str(column): {
+                str(other): _rounded(value)
+                for other, value in values.items()
+            }
+            for column, values in frame[numeric_columns].corr().iterrows()
+        },
+    }
+
+
+def _save_eda_plots(frame: pd.DataFrame, destination: Path) -> None:
+    """Persist compact plots for target balance and numeric feature patterns."""
+    target_order = sorted(frame[TARGET].unique().tolist())
+    figure, axis = plt.subplots(figsize=(7, 4))
+    sns.countplot(data=frame, x=TARGET, order=target_order, color="#16879b", ax=axis)
+    axis.set_title("Academic Performance Change Distribution")
+    axis.set_xlabel("Academic performance change")
+    axis.set_ylabel("Students")
+    figure.tight_layout()
+    figure.savefig(destination / "target_distribution.png", dpi=180)
+    plt.close(figure)
+
+    numeric_columns = frame.select_dtypes(include="number").columns.tolist()
+    melted = frame.melt(
+        id_vars=TARGET,
+        value_vars=numeric_columns,
+        var_name="feature",
+        value_name="value",
+    )
+    grid = sns.catplot(
+        data=melted,
+        x=TARGET,
+        y="value",
+        col="feature",
+        col_wrap=2,
+        kind="box",
+        order=target_order,
+        sharey=False,
+        color="#16879b",
+        height=3.4,
+    )
+    grid.set_axis_labels("Academic performance change", "Value")
+    grid.set_titles("{col_name}")
+    grid.figure.suptitle("Numeric Features by Academic Performance Change", y=1.02)
+    grid.figure.savefig(destination / "numeric_features_by_target.png", dpi=180)
+    plt.close(grid.figure)
+
+
 def build_pipeline(features: pd.DataFrame) -> Pipeline:
     """Build preprocessing and classification as one leakage-safe estimator."""
     numeric_columns = features.select_dtypes(include="number").columns.tolist()
@@ -239,6 +312,7 @@ def train_and_evaluate(
     """Train the model, evaluate it, and persist reproducible artifacts."""
     frame = load_dataset(dataset_path)
     data_quality = build_data_quality_report(frame)
+    eda_summary = build_eda_summary(frame)
     X = frame.drop(columns=[TARGET, *IDENTIFIER_COLUMNS])
     y = frame[TARGET]
     labels = sorted(y.unique().tolist())
@@ -269,6 +343,7 @@ def train_and_evaluate(
 
     destination = Path(output_dir)
     destination.mkdir(parents=True, exist_ok=True)
+    _save_eda_plots(frame, destination)
     _save_confusion_matrix(
         y_test, predictions, labels, destination / "confusion_matrix.png"
     )
@@ -283,6 +358,7 @@ def train_and_evaluate(
 
     results = {
         "data_quality": data_quality,
+        "eda": eda_summary,
         "dataset": {
             "rows": int(len(frame)),
             "features": int(X.shape[1]),
@@ -325,5 +401,8 @@ def train_and_evaluate(
     )
     (destination / "data_quality.json").write_text(
         json.dumps(data_quality, indent=2), encoding="utf-8"
+    )
+    (destination / "eda_summary.json").write_text(
+        json.dumps(eda_summary, indent=2), encoding="utf-8"
     )
     return results

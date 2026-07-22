@@ -69,6 +69,9 @@ Generated artifacts:
 
 - `artifacts/metrics.json` - dataset profile, split details, test metrics, baseline, cross-validation, feature importance, and limitations
 - `artifacts/data_quality.json` - missing-value counts, duplicate count, dtypes, numeric ranges, and categorical cardinality
+- `artifacts/eda_summary.json` - target balance, numeric means by outcome, and numeric correlations
+- `artifacts/target_distribution.png` - class-balance overview for academic-performance change
+- `artifacts/numeric_features_by_target.png` - numeric feature distributions grouped by target outcome
 - `artifacts/confusion_matrix.png` - held-out test confusion matrix
 - `artifacts/feature_importance.png` - permutation importance on held-out test data
 - `artifacts/model.joblib` - fitted preprocessing and classification pipeline
@@ -95,7 +98,7 @@ The model predicts minority classes more evenly than the majority baseline, whic
 pytest --cov=mental_health_pipeline --cov-report=term-missing --cov-fail-under=80
 ```
 
-The test suite covers schema validation, column normalization, data-quality profiling, preservation of all three target classes, unseen categories, end-to-end training, and artifact generation.
+The test suite covers schema validation, column normalization, data-quality and EDA profiling, preservation of all three target classes, unseen categories, end-to-end training, and artifact generation.
 
 ## Interpretation boundaries
 

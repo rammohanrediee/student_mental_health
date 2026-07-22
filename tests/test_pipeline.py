@@ -7,6 +7,7 @@ import pytest
 from mental_health_pipeline import (
     REQUIRED_COLUMNS,
     build_data_quality_report,
+    build_eda_summary,
     build_pipeline,
     load_dataset,
     normalize_columns,
@@ -109,6 +110,26 @@ def test_data_quality_report_profiles_numeric_and_categorical_columns(dataset_pa
     assert report["categorical_cardinality"]["academic_performance_change"] == 3
 
 
+def test_eda_summary_reports_target_balance_and_numeric_patterns(dataset_path):
+    frame = load_dataset(dataset_path)
+
+    summary = build_eda_summary(frame)
+
+    assert summary["target_distribution"]["Declined"] == {
+        "count": 60,
+        "proportion": 0.3333,
+    }
+    assert set(summary["numeric_means_by_target"]) == {
+        "Declined",
+        "Improved",
+        "Same",
+    }
+    assert summary["numeric_means_by_target"]["Declined"]["screen_time_hrs_day"] > (
+        summary["numeric_means_by_target"]["Improved"]["screen_time_hrs_day"]
+    )
+    assert summary["numeric_correlations"]["age"]["age"] == 1.0
+
+
 def test_pipeline_handles_unseen_categories_without_failure(dataset_path):
     frame = load_dataset(dataset_path)
     X = frame.drop(columns=["academic_performance_change", "name"])
@@ -136,6 +157,9 @@ def test_training_generates_metrics_model_and_plots(tmp_path, dataset_path):
     assert result["data_leakage_controls"]["preprocessing_fit_on_training_only"] is True
     assert (output_dir / "metrics.json").is_file()
     assert (output_dir / "data_quality.json").is_file()
+    assert (output_dir / "eda_summary.json").is_file()
+    assert (output_dir / "target_distribution.png").is_file()
+    assert (output_dir / "numeric_features_by_target.png").is_file()
     assert (output_dir / "model.joblib").is_file()
     assert (output_dir / "confusion_matrix.png").is_file()
     assert (output_dir / "feature_importance.png").is_file()
