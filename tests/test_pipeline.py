@@ -163,3 +163,30 @@ def test_training_generates_metrics_model_and_plots(tmp_path, dataset_path):
     assert (output_dir / "model.joblib").is_file()
     assert (output_dir / "confusion_matrix.png").is_file()
     assert (output_dir / "feature_importance.png").is_file()
+
+
+def test_training_writes_quality_report_before_rejecting_duplicate_rows(
+    tmp_path, dataset_path
+):
+    frame = pd.read_csv(dataset_path)
+    duplicated = pd.concat([frame, frame.iloc[[0]]], ignore_index=True)
+    path = tmp_path / "duplicated.csv"
+    duplicated.to_csv(path, index=False)
+    output_dir = tmp_path / "artifacts"
+
+    with pytest.raises(ValueError, match="duplicate rows"):
+        train_and_evaluate(path, output_dir)
+
+    report = pd.read_json(output_dir / "data_quality.json", typ="series")
+    assert report["duplicate_rows"] == 1
+
+
+def test_training_rejects_too_few_rows_per_target_class(tmp_path, dataset_path):
+    frame = pd.read_csv(dataset_path).groupby(
+        "Academic Performance Change", group_keys=False
+    ).head(2)
+    path = tmp_path / "too_small.csv"
+    frame.to_csv(path, index=False)
+
+    with pytest.raises(ValueError, match="at least 3 rows per target class"):
+        train_and_evaluate(path, tmp_path / "artifacts")

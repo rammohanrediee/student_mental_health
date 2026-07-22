@@ -65,6 +65,19 @@ Custom paths are supported:
 python run_analysis.py --data /path/to/data.csv --output-dir artifacts
 ```
 
+## Open the interactive dashboard
+
+After generating the artifacts, start the portfolio dashboard:
+
+```bash
+streamlit run streamlit_app.py
+```
+
+The dashboard presents the dataset profile, EDA, model-versus-baseline results,
+data-quality checks, and interpretation boundaries without requiring the source CSV
+at display time. This makes the tracked artifacts suitable for Streamlit Community
+Cloud while keeping the raw dataset out of Git.
+
 Generated artifacts:
 
 - `artifacts/metrics.json` - dataset profile, split details, test metrics, baseline, cross-validation, feature importance, and limitations
@@ -109,6 +122,8 @@ This is an observational learning project, not a diagnostic or causal model. Ass
 ```text
 .
 ├── mental_health_pipeline.py
+├── dashboard_data.py
+├── streamlit_app.py
 ├── run_analysis.py
 ├── mentl_health.ipynb
 ├── requirements.txt

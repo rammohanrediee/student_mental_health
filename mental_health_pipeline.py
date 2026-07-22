@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from math import ceil
 from pathlib import Path
 
 import joblib
@@ -59,7 +60,7 @@ def normalize_columns(frame: pd.DataFrame) -> pd.DataFrame:
     return result
 
 
-def load_dataset(path: str | Path) -> pd.DataFrame:
+def load_dataset(path: str | Path, *, enforce_quality: bool = True) -> pd.DataFrame:
     """Load, normalize, and validate the source CSV."""
     dataset_path = Path(path)
     if not dataset_path.is_file():
@@ -71,9 +72,9 @@ def load_dataset(path: str | Path) -> pd.DataFrame:
         raise ValueError(f"missing required columns: {', '.join(missing)}")
     if frame.empty:
         raise ValueError("dataset is empty")
-    if frame[REQUIRED_COLUMNS].isna().any().any():
+    if enforce_quality and frame[REQUIRED_COLUMNS].isna().any().any():
         raise ValueError("dataset contains missing values in required columns")
-    if frame.duplicated().any():
+    if enforce_quality and frame.duplicated().any():
         raise ValueError("dataset contains duplicate rows")
     return frame
 
@@ -310,27 +311,46 @@ def train_and_evaluate(
     random_state: int = 42,
 ) -> dict:
     """Train the model, evaluate it, and persist reproducible artifacts."""
-    frame = load_dataset(dataset_path)
+    frame = load_dataset(dataset_path, enforce_quality=False)
     data_quality = build_data_quality_report(frame)
+    destination = Path(output_dir)
+    destination.mkdir(parents=True, exist_ok=True)
+    (destination / "data_quality.json").write_text(
+        json.dumps(data_quality, indent=2), encoding="utf-8"
+    )
+    if data_quality["missing_values_total"]:
+        raise ValueError(
+            "dataset contains missing values; inspect artifacts/data_quality.json"
+        )
+    if data_quality["duplicate_rows"]:
+        raise ValueError(
+            "dataset contains duplicate rows; inspect artifacts/data_quality.json"
+        )
+
     eda_summary = build_eda_summary(frame)
     X = frame.drop(columns=[TARGET, *IDENTIFIER_COLUMNS])
     y = frame[TARGET]
     labels = sorted(y.unique().tolist())
+    minimum_class_count = int(y.value_counts().min())
+    if minimum_class_count < 3:
+        raise ValueError("training requires at least 3 rows per target class")
+    test_rows = max(ceil(len(frame) * 0.2), len(labels))
 
     X_train, X_test, y_train, y_test = train_test_split(
         X,
         y,
-        test_size=0.2,
+        test_size=test_rows,
         random_state=random_state,
         stratify=y,
     )
 
+    cv_folds = min(5, int(y_train.value_counts().min()))
     model = build_pipeline(X_train)
     cross_validation_scores = cross_val_score(
         model,
         X_train,
         y_train,
-        cv=5,
+        cv=cv_folds,
         scoring="f1_macro",
         n_jobs=1,
     )
@@ -341,8 +361,6 @@ def train_and_evaluate(
     baseline.fit(X_train, y_train)
     baseline_predictions = baseline.predict(X_test)
 
-    destination = Path(output_dir)
-    destination.mkdir(parents=True, exist_ok=True)
     _save_eda_plots(frame, destination)
     _save_confusion_matrix(
         y_test, predictions, labels, destination / "confusion_matrix.png"
@@ -378,7 +396,7 @@ def train_and_evaluate(
         "baseline": _classification_metrics(y_test, baseline_predictions),
         "cross_validation": {
             "metric": "macro_f1",
-            "folds": 5,
+            "folds": cv_folds,
             "macro_f1_scores": [_rounded(score) for score in cross_validation_scores],
             "macro_f1_mean": _rounded(cross_validation_scores.mean()),
             "macro_f1_std": _rounded(cross_validation_scores.std()),
@@ -398,9 +416,6 @@ def train_and_evaluate(
     }
     (destination / "metrics.json").write_text(
         json.dumps(results, indent=2), encoding="utf-8"
-    )
-    (destination / "data_quality.json").write_text(
-        json.dumps(data_quality, indent=2), encoding="utf-8"
     )
     (destination / "eda_summary.json").write_text(
         json.dumps(eda_summary, indent=2), encoding="utf-8"
