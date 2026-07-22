@@ -6,6 +6,7 @@ import pytest
 
 from mental_health_pipeline import (
     REQUIRED_COLUMNS,
+    build_data_quality_report,
     build_pipeline,
     load_dataset,
     normalize_columns,
@@ -93,6 +94,21 @@ def test_load_dataset_preserves_all_three_target_classes(dataset_path):
     }
 
 
+def test_data_quality_report_profiles_numeric_and_categorical_columns(dataset_path):
+    frame = load_dataset(dataset_path)
+
+    report = build_data_quality_report(frame)
+
+    assert report["rows"] == 180
+    assert report["columns"] == 10
+    assert report["missing_values_total"] == 0
+    assert report["duplicate_rows"] == 0
+    assert report["numeric_summary"]["age"]["min"] == 18.0
+    assert report["numeric_summary"]["age"]["max"] == 25.0
+    assert report["categorical_cardinality"]["gender"] == 3
+    assert report["categorical_cardinality"]["academic_performance_change"] == 3
+
+
 def test_pipeline_handles_unseen_categories_without_failure(dataset_path):
     frame = load_dataset(dataset_path)
     X = frame.drop(columns=["academic_performance_change", "name"])
@@ -119,6 +135,7 @@ def test_training_generates_metrics_model_and_plots(tmp_path, dataset_path):
     assert len(result["cross_validation"]["macro_f1_scores"]) == 5
     assert result["data_leakage_controls"]["preprocessing_fit_on_training_only"] is True
     assert (output_dir / "metrics.json").is_file()
+    assert (output_dir / "data_quality.json").is_file()
     assert (output_dir / "model.joblib").is_file()
     assert (output_dir / "confusion_matrix.png").is_file()
     assert (output_dir / "feature_importance.png").is_file()

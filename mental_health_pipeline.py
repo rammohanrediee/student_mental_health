@@ -78,6 +78,40 @@ def load_dataset(path: str | Path) -> pd.DataFrame:
     return frame
 
 
+def build_data_quality_report(frame: pd.DataFrame) -> dict:
+    """Summarize schema health and feature ranges for auditability."""
+    numeric_columns = frame.select_dtypes(include="number").columns.tolist()
+    categorical_columns = [
+        column for column in frame.columns if column not in numeric_columns
+    ]
+    numeric_summary = {}
+    for column in numeric_columns:
+        series = frame[column]
+        numeric_summary[column] = {
+            "min": _rounded(series.min()),
+            "max": _rounded(series.max()),
+            "mean": _rounded(series.mean()),
+            "std": _rounded(series.std()),
+        }
+
+    return {
+        "rows": int(len(frame)),
+        "columns": int(len(frame.columns)),
+        "missing_values_total": int(frame.isna().sum().sum()),
+        "missing_values_by_column": {
+            str(column): int(count)
+            for column, count in frame.isna().sum().items()
+        },
+        "duplicate_rows": int(frame.duplicated().sum()),
+        "dtypes": {str(column): str(dtype) for column, dtype in frame.dtypes.items()},
+        "numeric_summary": numeric_summary,
+        "categorical_cardinality": {
+            str(column): int(frame[column].nunique(dropna=False))
+            for column in categorical_columns
+        },
+    }
+
+
 def build_pipeline(features: pd.DataFrame) -> Pipeline:
     """Build preprocessing and classification as one leakage-safe estimator."""
     numeric_columns = features.select_dtypes(include="number").columns.tolist()
@@ -204,6 +238,7 @@ def train_and_evaluate(
 ) -> dict:
     """Train the model, evaluate it, and persist reproducible artifacts."""
     frame = load_dataset(dataset_path)
+    data_quality = build_data_quality_report(frame)
     X = frame.drop(columns=[TARGET, *IDENTIFIER_COLUMNS])
     y = frame[TARGET]
     labels = sorted(y.unique().tolist())
@@ -247,6 +282,7 @@ def train_and_evaluate(
     joblib.dump(model, destination / "model.joblib")
 
     results = {
+        "data_quality": data_quality,
         "dataset": {
             "rows": int(len(frame)),
             "features": int(X.shape[1]),
@@ -286,5 +322,8 @@ def train_and_evaluate(
     }
     (destination / "metrics.json").write_text(
         json.dumps(results, indent=2), encoding="utf-8"
+    )
+    (destination / "data_quality.json").write_text(
+        json.dumps(data_quality, indent=2), encoding="utf-8"
     )
     return results
